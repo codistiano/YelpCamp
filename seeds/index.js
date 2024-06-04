@@ -3,7 +3,7 @@ const axios = require("axios");
 const cities = require("./cities.js");
 const { descriptors, places } = require("./seedHelpers.js");
 const campground = require("../models/campground");
-require('dotenv').config();
+require('dotenv').config({ debug: true })
 
 const clientID = process.env.ClientID
 
@@ -31,7 +31,7 @@ async function imgFetcher() {
 }
 
 async function fetchRandomImageUrl() {
-  const unsplashUrl = 'https://api.unsplash.com/collections/483251/photos?client_id='; // Replace with your Unsplash API key
+  const unsplashUrl = `https://api.unsplash.com/collections/483251/photos?client_id=${clientID}`; // Replace with your Unsplash API key
   const response = await fetch(unsplashUrl);
   const data = await response.json();
   return data[0].urls.full; // Assuming the regular URL contains the image link
