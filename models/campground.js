@@ -3,24 +3,19 @@ const Schema = mongoose.Schema;
 
 const CampgroundSchema = new Schema({
     title: {
-        type: String,
-        required: [true, 'Title Cannot be blank']
+        type: String
     },
     image: {
-        type: String,
-        required: [true, "Image cannot be empty"]
+        type: String
     },
     price: {
-        type: Number,
-        required: [true, "Price should be indicated"]
+        type: Number
     },
     description: {
-        type: String,
-        required: [true, "There should be some description about the campground."]
+        type: String
     },
     location: {
-        type: String,
-        required: [true, "Location is important."]
+        type: String
     }
 })
 
