@@ -6,9 +6,13 @@ const mongoose = require("mongoose");
 const session = require("express-session");
 const flash = require("connect-flash");
 const ExpressError = require("./utils/ExpressError");
+const passport = require('passport')
+const LocalStrategy = require('passport-local')
+const User = require('./models/user')
 
-const campgrounds = require("./Routes/campground");
-const reviews = require("./Routes/reviews");
+const userRoutes = require('./Routes/users')
+const campgroundRoutes = require("./Routes/campground");
+const reviewsRoutes = require("./Routes/reviews");
 
 const app = express();
 
@@ -31,24 +35,34 @@ app.use(express.urlencoded({ extended: true }));
 const sessionConfig = {
   secret: "thisshouldbeasecret",
   resave: false,
-  saveUninitialized: true,
+  saveUninitialized: false,
   cookie: {
     httpOnly: true,
     expires: Date.now() + 1000 * 60 * 60 * 24 * 7,
-    maxAge: 1000 * 60 * 60 * 24 * 7,
+    maxAge: 600000
   },
 };
 app.use(session(sessionConfig));
 app.use(flash());
 
+app.use(passport.initialize())
+app.use(passport.session())
+passport.use(new LocalStrategy(User.authenticate()));
+
+passport.serializeUser(User.serializeUser())
+passport.deserializeUser(User.deserializeUser())
+
 app.use((req, res, next) => {
+  console.log(req.session)
+  res.locals.currentUser = req.user
   res.locals.success = req.flash("success");
   res.locals.error = req.flash("error")
   next()
 })
 
-app.use("/campgrounds", campgrounds);
-app.use("/campgrounds/:id/reviews", reviews);
+app.use('/', userRoutes);
+app.use("/campgrounds", campgroundRoutes);
+app.use("/campgrounds/:id/reviews", reviewsRoutes);
 app.use(express.static(path.join(__dirname + "/public")));
 
 
