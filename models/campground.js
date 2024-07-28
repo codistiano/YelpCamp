@@ -1,39 +1,49 @@
-const mongoose = require('mongoose')
-const Review = require('./review')
+const mongoose = require("mongoose");
+const Review = require("./review");
 const Schema = mongoose.Schema;
 
+const ImageSchema = new Schema({
+    url: String,
+    filename: String,
+});
+
+ImageSchema.virtual('thumbnail').get(function() {
+  return this.url.replace('/upload/', '/upload/w_200/')
+});
+
 const CampgroundSchema = new Schema({
-    title: {
-        type: String
+  title: {
+    type: String,
+  },
+  images: [ImageSchema],
+  price: {
+    type: Number,
+  },
+  description: {
+    type: String,
+  },
+  location: {
+    type: String,
+  },
+  author: {
+    type: Schema.Types.ObjectId,
+    ref: "User",
+  },
+  reviews: [
+    {
+      type: Schema.Types.ObjectId,
+      ref: "Review",
     },
-    image: {
-        type: String
-    },
-    price: {
-        type: Number
-    },
-    description: {
-        type: String
-    },
-    location: {
-        type: String
-    },
-    reviews: [
-        {
-            type: Schema.Types.ObjectId,
-            ref: 'Review'
-        }
-    ]
-})
+  ],
+});
 
-CampgroundSchema.post('findOneAndDelete', async function(camp) {
-    console.log(camp.reviews)
-    if (camp.reviews.length) {
-        await Review.deleteMany({
-            _id: {$in: camp.reviews}
-        })
-    }
-    
-})
+CampgroundSchema.post("findOneAndDelete", async function (camp) {
+  console.log(camp.reviews);
+  if (camp.reviews.length) {
+    await Review.deleteMany({
+      _id: { $in: camp.reviews },
+    });
+  }
+});
 
-module.exports = mongoose.model('Campground', CampgroundSchema)
+module.exports = mongoose.model("Campground", CampgroundSchema);
