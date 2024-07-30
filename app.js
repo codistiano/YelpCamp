@@ -15,6 +15,7 @@ const LocalStrategy = require("passport-local");
 const User = require("./models/user");
 const mongoSanitize = require("express-mongo-sanitize");
 const helmet = require("helmet");
+const MongoStore = require("connect-mongo");
 
 const userRoutes = require("./Routes/users");
 const campgroundRoutes = require("./Routes/campground");
@@ -22,7 +23,8 @@ const reviewsRoutes = require("./Routes/reviews");
 
 const app = express();
 
-mongoose.connect("mongodb://127.0.0.1:27017/yelp-camp");
+const dbUrl = process.env.DB_URL
+mongoose.connect(dbUrl);
 
 const db = mongoose.connection;
 db.on("error", console.error.bind(console, "connection error:"));
@@ -39,9 +41,22 @@ app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 app.use(mongoSanitize());
 
+const secret = process.env.SECRET || 'thisshouldbeasecret!'
+
+const store = MongoStore.create({
+  mongoUrl: dbUrl,
+  secret,
+  touchAfter: 24 * 60 * 60,
+})
+
+store.on("error", function(e) {
+  console.log('SESSION STORE ERROR: ', e)
+})
+
 const sessionConfig = {
+  store,
   name: "safer",
-  secret: "thisshouldbeasecret",
+  secret,
   resave: false,
   saveUninitialized: false,
   cookie: {
@@ -94,7 +109,7 @@ app.use(
         "blob:",
         "data:",
         "https://res.cloudinary.com/ddzisjsqe/", //SHOULD MATCH YOUR CLOUDINARY ACCOUNT!
-        "https://api.unsplash.com/",
+        "https://images.unsplash.com/",
       ],
       fontSrc: ["'self'", ...fontSrcUrls],
     },
@@ -134,6 +149,8 @@ app.use((err, req, res, next) => {
   res.status(statusCode).render("error", { err });
 });
 
-app.listen(3000, () => {
-  console.log("Connected on port http://localhost:3000 !");
+const port = process.env.PORT || 3000;
+
+app.listen(port, () => {
+  console.log(`Connected on port ${3000}`);
 });
